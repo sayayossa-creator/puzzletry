@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fruit Puzzle Pro - Portfolio</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h1>🍉 Fruit Puzzle Pro</h1>
+  <p class="subtitle">Belajar Weighted Random & Payline - Educational Game</p>
+
+  <div class="stats">
+    <div>Level: <span id="level">1</span></div>
+    <div>Skor: <span id="score">0</span></div>
+    <div>Putaran: <span id="round">0</span></div>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="controls">
+    <button id="btn-spin" onclick="game.putar()">PUTAR 🎲</button>
+    <button class="secondary" onclick="game.reset()">RESET</button>
+  </div>
+
+  <div id="log">Siap bermain!</div>
+
+  <div class="data-box">
+    <h3>Statistik Drop (Bukti Weighted Jalan)</h3>
+    <div id="drop-stats"></div>
+  </div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>

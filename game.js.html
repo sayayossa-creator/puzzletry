@@ -1,0 +1,99 @@
+const game = {
+  score: parseInt(localStorage.getItem('fp_score')||0),
+  round: 0,
+  level: 1,
+  dropCount: JSON.parse(localStorage.getItem('fp_drop')||'{"🍊":0,"🍎":0,"🍇":0,"🍉":0}'),
+
+  pool() {
+    // level makin tinggi, semangka makin langka
+    let rare = Math.max(1, 6 - this.level);
+    return [
+      {icon:"🍊", bobot:50},
+      {icon:"🍎", bobot:30},
+      {icon:"🍇", bobot:15},
+      {icon:"🍉", bobot:rare},
+    ];
+  },
+
+  ambilSatu(){
+    const pool = this.pool();
+    const total = pool.reduce((s,p)=>s+p.bobot,0);
+    let acak = Math.random()*total;
+    for(let p of pool){ acak-=p.bobot; if(acak<=0) return p.icon; }
+    return pool[0].icon;
+  },
+
+  putar(){
+    const board = document.getElementById('board');
+    const btn = document.getElementById('btn-spin');
+    btn.disabled = true;
+    board.innerHTML = "";
+    let cells = [];
+    for(let i=0;i<9;i++){
+      let d = document.createElement('div');
+      d.className='cell spin'; d.textContent='❓';
+      board.appendChild(d); cells.push(d);
+    }
+    document.getElementById('log').textContent = `Memutar Level ${this.level}...`;
+
+    // beep pakai Web Audio
+    try{ let a=new (window.AudioContext||window.webkitAudioContext)(); let o=a.createOscillator(); o.connect(a.destination); o.frequency.value=400; o.start(); o.stop(a.currentTime+0.08);}catch(e){}
+
+    setTimeout(()=>{
+      let papan=[];
+      cells.forEach(c=>{
+        let icon = this.ambilSatu();
+        papan.push(icon);
+        this.dropCount[icon] = (this.dropCount[icon]||0)+1;
+        c.classList.remove('spin'); c.textContent=icon;
+      });
+
+      this.round++;
+      let winLines = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      let win = null;
+      for(let line of winLines){
+        if(papan[line[0]]===papan[line[1]] && papan[line[1]]===papan[line[2]]){ win=line; break; }
+      }
+
+      if(win){
+        win.forEach(i=>cells[i].classList.add('win'));
+        let bonus = papan[win[0]]==="🍉"? 50 : papan[win[0]]==="🍇"? 20 : 10;
+        this.score+=bonus;
+        if(this.score>0 && this.score%100===0) this.level++;
+        document.getElementById('log').textContent = `MATCH ${papan[win[0]]} x3! +${bonus} poin`;
+      } else {
+        document.getElementById('log').textContent = "Belum match, coba lagi!";
+      }
+      this.save(); this.render();
+      btn.disabled=false;
+    }, 700);
+  },
+
+  render(){
+    document.getElementById('score').textContent=this.score;
+    document.getElementById('round').textContent=this.round;
+    document.getElementById('level').textContent=this.level;
+    let html = "";
+    for(let k in this.dropCount){ html+=`${k}: ${this.dropCount[k]}x<br>`; }
+    document.getElementById('drop-stats').innerHTML = html;
+  },
+
+  save(){
+    localStorage.setItem('fp_score', this.score);
+    localStorage.setItem('fp_drop', JSON.stringify(this.dropCount));
+    this.render();
+  },
+
+  reset(){
+    if(confirm("Reset skor & statistik?")){
+      this.score=0; this.round=0; this.level=1; this.dropCount={"🍊":0,"🍎":0,"🍇":0,"🍉":0};
+      this.save(); this.render();
+      document.getElementById('board').innerHTML=""; document.getElementById('log').textContent="Direset!";
+    }
+  }
+};
+game.render();
